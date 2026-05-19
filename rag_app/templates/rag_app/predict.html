@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Agrifusion AI - Maize Predictor</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #2E7D32, #66BB6A);
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            text-align: center;
+            color: #2E7D32;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        input {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #388E3C;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #E8F5E9;
+            border-left: 5px solid #4CAF50;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .error {
+            background: #FFEBEE;
+            border-left-color: red;
+        }
+
+        .loading {
+            text-align: center;
+            margin-top: 15px;
+            color: #555;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>🌽 Agrifusion AI</h2>
+    <p class="subtitle">Maize Yield Prediction System</p>
+
+    <div class="grid">
+        <input id="lat" placeholder="Latitude">
+        <input id="lon" placeholder="Longitude">
+        <input id="soil" placeholder="Soil Type (Loamy, Sandy, Silty, Clay)">
+        <input id="fert" placeholder="Fertilizer (Urea, Organic, Compost, NPK)">
+        <input id="pest" placeholder="Pesticide Amount">
+        <input id="temp" placeholder="Temperature (°C)">
+        <input id="rain" placeholder="Rainfall (mm)">
+        <input id="hum" placeholder="Humidity (%)">
+    </div>
+
+    <button onclick="predict()">Predict Yield</button>
+
+    <div class="loading" id="loading"></div>
+    <div id="result"></div>
+
+    <div class="footer">
+        AI + Indigenous Knowledge 🌍
+    </div>
+</div>
+
+<script>
+async function predict() {
+    let loading = document.getElementById("loading");
+    let resultDiv = document.getElementById("result");
+
+    loading.innerText = "⏳ Predicting...";
+    resultDiv.innerHTML = "";
+
+    let url = `/predict-api/?lat=${lat.value}&lon=${lon.value}&soil=${soil.value}&fert=${fert.value}&pest=${pest.value}&temp=${temp.value}&rain=${rain.value}&hum=${hum.value}`;
+
+    try {
+        let res = await fetch(url);
+        let data = await res.json();
+
+        loading.innerText = "";
+
+        if (data.prediction !== undefined) {
+            resultDiv.innerHTML = `
+                <div class="result">
+                    🌽 <strong>Predicted Yield:</strong> ${data.prediction} tons/hectare <br><br>
+                    📊 <strong>Interpretation:</strong> ${data.message}
+                </div>
+            `;
+        } else {
+            resultDiv.innerHTML = `
+                <div class="result error">
+                    ❌ ${data.error}
+                </div>
+            `;
+        }
+
+    } catch (error) {
+        loading.innerText = "";
+        resultDiv.innerHTML = `
+            <div class="result error">
+                ⚠️ Error connecting to server
+            </div>
+        `;
+    }
+}
+</script>
+
+</body>
+</html>

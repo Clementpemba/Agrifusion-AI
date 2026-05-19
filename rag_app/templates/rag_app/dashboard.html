@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Agrifusion AI</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: #f4f6f8;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: #2E7D32;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* MAIN */
+        .container {
+            padding: 40px;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            color: #2E7D32;
+        }
+
+        .welcome {
+            margin-bottom: 30px;
+            color: #555;
+        }
+
+        /* GRID */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #2E7D32;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .btn:hover {
+            background: #388E3C;
+        }
+
+        /* AI ADVICE */
+        .advice-box {
+            margin-top: 10px;
+            padding: 12px;
+            background: #e8f5e9;
+            border-left: 4px solid #2E7D32;
+            display: none;
+            border-radius: 6px;
+        }
+
+        /* ACTIVITY */
+        .activity-item {
+            position: relative;
+            padding: 12px;
+            border-radius: 8px;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .activity-item:hover {
+            background: #f1f1f1;
+        }
+
+        .details {
+            margin-top: 8px;
+            color: #333;
+        }
+
+        /* DELETE BUTTON */
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e53935;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 5px 9px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background: #b71c1c;
+        }
+
+        /* DELETE ALL */
+        .delete-all-btn {
+            background: #c62828;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .delete-all-btn:hover {
+            background: #8e0000;
+        }
+
+        @media (max-width: 700px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .navbar {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .nav-links {
+                margin-top: 10px;
+            }
+            
+            .nav-links a {
+                display: inline-block;
+                margin: 5px 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <div><strong>🌽 Agrifusion AI</strong></div>
+
+    <div class="nav-links">
+        <a href="/dashboard/">Dashboard</a>
+        <a href="/predict/">Predict</a>
+        <a href="/chat/">Chat (English)</a>
+        <a href="/chat-multilingual/">🌍 Chat (Chichewa / Tumbuka)</a>
+        <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div class="container">
+
+    <h2>Welcome, {{ request.user.username }} 👋</h2>
+    <p class="welcome">Your AI-powered climate resilience assistant.</p>
+
+    <div class="grid">
+
+        <!-- PREDICT -->
+        <div class="card">
+            <h3>🌽 Yield Prediction</h3>
+            <p>Predict crop yield using climate and soil data.</p>
+            <a href="/predict/" class="btn">Go to Predictor</a>
+        </div>
+
+        <!-- CHAT MULTILINGUAL -->
+        <div class="card">
+            <h3>🌍 AI Chat Assistant (Multilingual)
+                <br>ask in English, Chichewa, or Tumbuka.</h3>
+            <p>Funsani mafunso a ulimi m'Chichewa kapena Tumbuka.</p>
+            <a href="/chat-multilingual/" class="btn">Tsegulani Chat</a>
+        </div>
+
+        <!-- AI ADVICE -->
+        <div class="card">
+            <h3>🤖 AI Advice</h3>
+            <p>Latest recommendation from the system:</p>
+            <div id="adviceBox" class="advice-box"></div>
+        </div>
+
+        <!-- RECENT ACTIVITY -->
+        <div class="card">
+            <h3>🕒 Recent Activity</h3>
+
+            {% for act in activities %}
+                <div class="activity-item">
+
+                    <!-- DELETE BUTTON -->
+                    <button class="delete-btn"
+                        data-id="{{ act.id }}"
+                        onclick="deleteActivity(event, this)">
+                        ✖
+                    </button>
+
+                    <div onclick="toggleDetails(this)">
+
+                        {% if act.action_type == "question" %}
+                            <p><strong>❓ Question:</strong><br>
+                            {{ act.content|truncatechars:80 }}</p>
+
+                            <p class="details" style="display:none;">
+                                <strong>Answer:</strong><br>
+                                {{ act.result }}
+                            </p>
+
+                        {% else %}
+                            <p><strong>🌽 Prediction:</strong><br>
+                            {{ act.result }}</p>
+                        {% endif %}
+        
+                    </div>
+                </div>
+                <hr>
+            {% empty %}
+                <p>No activity yet.</p>
+            {% endfor %}
+            <button class="delete-all-btn" onclick="deleteAllActivities()">
+                    🗑 Clear All
+                </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- JS -->
+<script>
+function toggleDetails(element) {
+    let details = element.querySelector(".details");
+    if (!details) return;
+
+    details.style.display =
+        details.style.display === "none" ? "block" : "none";
+}
+
+function deleteActivity(event, element) {
+    event.stopPropagation();
+
+    const id = element.getAttribute("data-id");
+
+    if (!confirm("Delete this activity?")) return;
+
+    fetch(`/delete-activity/${id}/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken()
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            element.parentElement.remove();
+        }
+    });
+}
+
+function deleteAllActivities() {
+    if (!confirm("Delete ALL activities?")) return;
+
+    fetch("/delete-all-activities/", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // refresh UI
+        } else {
+            alert("Failed to delete");
+        }
+    })
+    .catch(() => alert("Error deleting activities"));
+}
+
+function getCSRFToken() {
+    return document.cookie.split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        .split('=')[1];
+}
+
+// Optional: show advice dynamically later
+function showAdvice(advice) {
+    const box = document.getElementById("adviceBox");
+    box.style.display = "block";
+    box.innerHTML = "<strong>AI Advice:</strong> " + advice;
+}
+</script>
+
+</body>
+</html>
