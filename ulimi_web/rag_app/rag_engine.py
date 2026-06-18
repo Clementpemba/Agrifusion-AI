@@ -2,7 +2,7 @@ import os
 import re
 import json
 from dotenv import load_dotenv
-
+                                                
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_openai import ChatOpenAI   
